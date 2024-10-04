@@ -1,18 +1,16 @@
 import React, { useState } from "react";
-import React, { useState } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [deletedTodos, setDeletedTodos] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
-  const [newContent, setNewContent] = useState("");
   const [newTodo, setNewTodo] = useState({
     title: "",
     description: "",
   });
 
-  const addTodo = (content) => {
-    const newTodo = { id: Date.now(), content };
+  const addTodo = (newTodo) => {
+    const todoToAdd = { id: Date.now(), ...newTodo };
     setTodos((prev) => [...prev, newTodo]);
   };
 
@@ -29,45 +27,39 @@ function App() {
   const updateTodo = (id, updatedContent) => {
     setTodos((prev) =>
       prev.map((todo) =>
-        todo.id === id ? { ...todo, content: updatedContent } : todo
+        todo.id === id
+          ? { ...todo, title: newTodo.title, description: newTodo.description }
+          : todo
       )
     );
 
     setCurrentTodo(null); //resetovanje stavke koju smo uredjivali
-    setNewTodo({ title: "", description: " " });
+    setNewTodo({ title: "", description: "" });
   };
   //izmena
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
     if (currentTodo) {
-      updateTodo(currentTodo.id, newContent);
+      updateTodo(currentTodo.id, newTodo);
     }
   };
-
   const deleteTodo = (id) => {
     const todoToDelete = todos.find((todo) => todo.id == id);
     setDeletedTodos((prev) => [...prev, todoToDelete]);
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
-  /*
-  const [newTodo, setNewTodo] = useState({
-    title: "",
-    description: "",
-  });
-*/
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewTodo((prevState) => ({
       ...prevState,
       [name]: value,
     }));
-    // azuriranje state-a sa unetim vrednostima
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     addTodo(newTodo);
-    setTodos([...todos, newTodo]);
     setNewTodo({ title: "", description: "" });
   };
 
