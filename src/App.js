@@ -50,6 +50,12 @@ function App() {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
+  const restoreTodo = (id) => {
+    const todoToRestore = deletedTodos.find((todo) => todo.id === id);
+    setTodos((prev) => [...prev, todoToRestore]);
+    setDeletedTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewTodo((prevState) => ({
@@ -148,6 +154,7 @@ function App() {
           <li key={todo.id}>
             {" "}
             {todo.title} - {todo.description}
+            <button onClick={() => restoreTodo(todo.id)}>Restore</button>
           </li>
         ))}
       </ul>
