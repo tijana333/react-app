@@ -9,6 +9,7 @@ function App() {
     description: "",
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
   const addTodo = (newTodo) => {
     const todoToAdd = { id: Date.now(), ...newTodo };
     setTodos((prev) => [...prev, newTodo]);
@@ -24,7 +25,7 @@ function App() {
 
   // azuriranje
 
-  const updateTodo = (id, updatedContent) => {
+  const updateTodo = (id) => {
     setTodos((prev) =>
       prev.map((todo) =>
         todo.id === id
@@ -63,10 +64,13 @@ function App() {
     setNewTodo({ title: "", description: "" });
   };
 
+  const filteredTodos = [...todos, ...deletedTodos].filter((todo) =>
+    todo.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="App">
       <h1>To-Do List</h1>
-
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -88,6 +92,24 @@ function App() {
 
         <button type="submit">Add To-Do</button>
       </form>
+      <input
+        type="text"
+        placeholder="Search To-Dos"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      {/* Dinamicki predlozi */}
+      {searchQuery && (
+        <ul>
+          {filteredTodos.map((todo, index) => (
+            <li key={index}>
+              {todo.title} - {todo.description}
+              {""}
+              {todos.includes(todo) ? "(Active)" : "(Deleted)"}
+            </li>
+          ))}
+        </ul>
+      )}
       <h2>Your To-Do List:</h2>
       <ul>
         {todos.map((todo, index) => (
@@ -99,7 +121,6 @@ function App() {
           </li>
         ))}
       </ul>
-
       {currentTodo && (
         <form onSubmit={handleUpdateSubmit}>
           <input
@@ -121,7 +142,6 @@ function App() {
           <button type="submit">Update </button>
         </form>
       )}
-
       <h2>Deleted items: </h2>
       <ul>
         {deletedTodos.map((todo) => (
