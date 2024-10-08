@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -10,6 +10,25 @@ function App() {
   });
 
   const [searchQuery, setSearchQuery] = useState("");
+  {
+    /* ucitavanje iz local storage*/
+  }
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+    const savedDeletedTodos =
+      JSON.parse(localStorage.getItem("deletedTodos")) || [];
+    setTodos(savedTodos);
+    setDeletedTodos(savedDeletedTodos);
+  }, []);
+
+  {
+    /*cuvanje podataka u local storage */
+  }
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+    localStorage.setItem("deletedTodos", JSON.stringify(deletedTodos));
+  }, [todos, deletedTodos]);
+
   const addTodo = (newTodo) => {
     const todoToAdd = { id: Date.now(), ...newTodo };
     setTodos((prev) => [...prev, newTodo]);
@@ -161,5 +180,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
