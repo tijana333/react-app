@@ -262,42 +262,23 @@ function App() {
           <li key={todo.id}>
             <h3>{todo.title}</h3>
             <p>{todo.description}</p>
-            <p>Priority: {todo.priority}</p>
-            <p>Created At: {new Date(todo.createdAt).toLocaleString()}</p>
             <p>Due Date: {todo.dueDate}</p>
-            <select
-              value={todo.status}
-              onChange={(e) => updateStatus(todo.id, e.target.value)}
-            >
-              <option value="active">Active</option>
-              <option value="finished">Finished</option>
-              <option value="trashed">Trashed</option>
-            </select>
+            <p>Priority: {todo.priority}</p>
             <button onClick={() => editTodo(todo)}>Edit</button>
             <button onClick={() => deleteTodo(todo.id)}>Delete</button>
           </li>
         ))}
       </ul>
 
-      <h2>Trashed To-Do List:</h2>
-      <ul>
-        {deletedTodos.map((todo) => (
-          <li key={todo.id}>
-            <h3>{todo.title}</h3>
-            <p>{todo.description}</p>
-            <button onClick={() => restoreTodo(todo.id)}>Restore</button>
-          </li>
-        ))}
-      </ul>
-
       {editMode && (
         <form onSubmit={handleUpdateSubmit}>
+          <h3>Edit To-Do</h3>
           <input
             type="text"
             name="title"
             value={newTodo.title}
-            onChange={handleChange}
-            placeholder="Title"
+            onChange={handleTitleChange}
+            placeholder="Edit Title"
             required
           />
           <input
@@ -305,10 +286,27 @@ function App() {
             name="description"
             value={newTodo.description}
             onChange={handleChange}
-            placeholder="Description"
+            placeholder="Edit Description"
+            required
+          />
+          <select
+            name="priority"
+            value={newTodo.priority}
+            onChange={handleChange}
+          >
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+          <input
+            type="date"
+            name="dueDate"
+            value={newTodo.dueDate}
+            onChange={handleChange}
             required
           />
           <button type="submit">Update To-Do</button>
+          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         </form>
       )}
     </div>
