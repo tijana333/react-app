@@ -13,12 +13,8 @@ function App() {
     status: "active",
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterCriteria, setFilterCriteria] = useState({
-    priority: "",
-    status: "",
-    date: "",
-  });
-
+  const [errorMessage, setErrorMessage] = useState("");
+  const [editMode, setEditMode] = useState(false);
   const [sortBy, setSortBy] = useState("creationDate");
   const [filterBy, setFilterBy] = useState("all");
 
@@ -30,20 +26,56 @@ function App() {
     setDeletedTodos(savedDeletedTodos);
   }, []);
 
-  {
-    /*cuvanje podataka u local storage */
-  }
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
     localStorage.setItem("deletedTodos", JSON.stringify(deletedTodos));
   }, [todos, deletedTodos]);
+
+  const validateForm = () => {
+    if (!newTodo.title || !newTodo.description || !newTodo.dueDate) {
+      setErrorMessage("Please fill out all fields.");
+      return false;
+    }
+
+    // Provera da ne mogu da se unesu samo brojevi
+    const titleIsValid = isNaN(newTodo.title);
+    const descriptionIsValid = isNaN(newTodo.description);
+
+    if (!titleIsValid) {
+      setErrorMessage("Title cannot be just numbers.");
+      return false;
+    }
+
+    if (!descriptionIsValid) {
+      setErrorMessage("Description cannot be just numbers.");
+      return false;
+    }
+
+    setErrorMessage("");
+    return true;
+  };
+
+  const handleTitleChange = (e) => {
+    const { name, value } = e.target;
+    setNewTodo((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+
+    // Provera unosa naslova u toku kucanja
+    if (value && !isNaN(value)) {
+      setErrorMessage("Title cannot be just numbers.");
+    } else {
+      setErrorMessage("");
+    }
+  };
 
   const addTodo = (newTodo) => {
     const todoToAdd = {
       id: Date.now(),
       ...newTodo,
     };
-    setTodos((prev) => [...prev, todoToAdd]);
+    setTodos((prev) => [todoToAdd, ...prev]);
   };
 
   const editTodo = (todo) => {
@@ -54,9 +86,8 @@ function App() {
       priority: todo.priority,
       dueDate: todo.dueDate,
     });
+    setEditMode(true);
   };
-
-  // azuriranje
 
   const updateTodo = (id) => {
     setTodos((prev) =>
@@ -67,7 +98,8 @@ function App() {
       )
     );
 
-    setCurrentTodo(null); //resetovanje stavke koju smo uredjivali
+    setEditMode(false);
+    setCurrentTodo(null);
     setNewTodo({
       title: "",
       description: "",
@@ -76,15 +108,16 @@ function App() {
       status: "active",
     });
   };
-  //izmena
+
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
-    if (currentTodo) {
+    if (validateForm() && currentTodo) {
       updateTodo(currentTodo.id);
     }
   };
+
   const deleteTodo = (id) => {
-    const todoToDelete = todos.find((todo) => todo.id == id);
+    const todoToDelete = todos.find((todo) => todo.id === id);
     setDeletedTodos((prev) => [
       ...prev,
       { ...todoToDelete, status: "trashed" },
@@ -108,8 +141,10 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addTodo(newTodo);
-    setNewTodo({ title: "", description: "" });
+    if (validateForm()) {
+      addTodo(newTodo);
+      setNewTodo({ title: "", description: "", priority: "low", dueDate: "" });
+    }
   };
 
   const filteredTodos = [...todos, ...deletedTodos].filter((todo) =>
@@ -119,9 +154,8 @@ function App() {
   const sortedTodos = () => {
     return todos.slice().sort((a, b) => {
       if (sortBy === "creationDate") {
-        return a.id - b.id; //sortiranje po datumu
+        return a.id - b.id;
       }
-
       if (sortBy === "priority") {
         const priorityOrder = { high: 1, medium: 2, low: 3, normal: 4 };
         return priorityOrder[a.priority] - priorityOrder[b.priority];
@@ -133,6 +167,7 @@ function App() {
       return 0;
     });
   };
+
   const filteredAndSortedTodos = () => {
     return sortedTodos().filter((todo) => {
       if (filterBy === "active") return todo.status === "active";
@@ -158,7 +193,7 @@ function App() {
           type="text"
           name="title"
           value={newTodo.title}
-          onChange={handleChange}
+          onChange={handleTitleChange}
           placeholder="Title"
           required
         />
@@ -187,6 +222,7 @@ function App() {
           required
         />
         <button type="submit">Add To-Do</button>
+        {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       </form>
 
       <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -213,8 +249,7 @@ function App() {
         <ul>
           {filteredTodos.map((todo, index) => (
             <li key={index}>
-              {todo.title} - {todo.description}
-              {""}
+              {todo.title} - {todo.description}{" "}
               {todos.includes(todo) ? "(Active)" : "(Deleted)"}
             </li>
           ))}
@@ -236,6 +271,7 @@ function App() {
             >
               <option value="active">Active</option>
               <option value="finished">Finished</option>
+              <option value="trashed">Trashed</option>
             </select>
             <button onClick={() => editTodo(todo)}>Edit</button>
             <button onClick={() => deleteTodo(todo.id)}>Delete</button>
@@ -243,14 +279,25 @@ function App() {
         ))}
       </ul>
 
-      {currentTodo && (
+      <h2>Trashed To-Do List:</h2>
+      <ul>
+        {deletedTodos.map((todo) => (
+          <li key={todo.id}>
+            <h3>{todo.title}</h3>
+            <p>{todo.description}</p>
+            <button onClick={() => restoreTodo(todo.id)}>Restore</button>
+          </li>
+        ))}
+      </ul>
+
+      {editMode && (
         <form onSubmit={handleUpdateSubmit}>
           <input
             type="text"
             name="title"
             value={newTodo.title}
             onChange={handleChange}
-            placeholder="Edit Title"
+            placeholder="Title"
             required
           />
           <input
@@ -258,31 +305,12 @@ function App() {
             name="description"
             value={newTodo.description}
             onChange={handleChange}
-            placeholder="Edit Description"
+            placeholder="Description"
             required
           />
-          <select
-            name="priority"
-            value={newTodo.priority}
-            onChange={handleChange}
-          >
-            <option value="low">Low Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
-          </select>
-          <button type="submit">Update</button>
+          <button type="submit">Update To-Do</button>
         </form>
       )}
-
-      <h2>Deleted items:</h2>
-      <ul>
-        {deletedTodos.map((todo) => (
-          <li key={todo.id}>
-            {todo.title} - {todo.description}
-            <button onClick={() => restoreTodo(todo.id)}>Restore</button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
