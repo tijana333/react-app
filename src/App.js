@@ -4,6 +4,7 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [deletedTodos, setDeletedTodos] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
+  const [finishedTodos, setFinishedTodos] = useState([]);
   const [newTodo, setNewTodo] = useState({
     title: "",
     description: "",
@@ -73,8 +74,10 @@ function App() {
   const addTodo = (newTodo) => {
     const todoToAdd = {
       id: Date.now(),
+      createdAt: new Date().toISOString(),
       ...newTodo,
     };
+    console.log("Dodajem to-do:", todoToAdd);
     setTodos((prev) => [todoToAdd, ...prev]);
   };
 
@@ -118,11 +121,35 @@ function App() {
 
   const deleteTodo = (id) => {
     const todoToDelete = todos.find((todo) => todo.id === id);
-    setDeletedTodos((prev) => [
+    if (todoToDelete) {
+      setDeletedTodos((prev) => [
+        ...prev,
+        { ...todoToDelete, status: "trashed" },
+      ]);
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    } else {
+      const todoToDeleteFromFinished = finishedTodos.find(
+        (todo) => todo.id === id
+      );
+      if (todoToDeleteFromFinished) {
+        setFinishedTodos((prev) => prev.filter((todo) => todo.id !== id));
+      }
+    }
+  };
+
+  const finishTodo = (id) => {
+    const todoToFinish = todos.find((todo) => todo.id === id);
+    setFinishedTodos((prev) => [
       ...prev,
-      { ...todoToDelete, status: "trashed" },
+      { ...todoToFinish, status: "finished" },
     ]);
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  const restoreFinishedTodo = (id) => {
+    const todoToRestore = finishedTodos.find((todo) => todo.id === id);
+    setTodos((prev) => [...prev, todoToRestore]);
+    setFinishedTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
   const restoreTodo = (id) => {
@@ -143,6 +170,7 @@ function App() {
     e.preventDefault();
     if (validateForm()) {
       addTodo(newTodo);
+
       setNewTodo({ title: "", description: "", priority: "low", dueDate: "" });
     }
   };
@@ -154,7 +182,7 @@ function App() {
   const sortedTodos = () => {
     return todos.slice().sort((a, b) => {
       if (sortBy === "creationDate") {
-        return a.id - b.id;
+        return new Date(a.createdAt) - new Date(b.createdAt);
       }
       if (sortBy === "priority") {
         const priorityOrder = { high: 1, medium: 2, low: 3, normal: 4 };
@@ -256,7 +284,7 @@ function App() {
         </ul>
       )}
 
-      <h2>Your To-Do List:</h2>
+      <h2>Your Active To-Do List:</h2>
       <ul>
         {filteredAndSortedTodos().map((todo) => (
           <li key={todo.id}>
@@ -266,6 +294,7 @@ function App() {
             <p>Priority: {todo.priority}</p>
             <button onClick={() => editTodo(todo)}>Edit</button>
             <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+            <button onClick={() => finishTodo(todo.id)}>Finish</button>
           </li>
         ))}
       </ul>
@@ -309,8 +338,37 @@ function App() {
           {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         </form>
       )}
+
+      {finishedTodos.length > 0 && <h2> Finished To-Dos:</h2>}
+      <ul>
+        {finishedTodos.map((todo) => (
+          <li key={todo.id}>
+            <h3> {todo.title}</h3>
+            <p>{todo.description}</p>
+            <p>Due Date: {todo.dueDate} </p>
+            <p>Priority: {todo.priority}</p>
+
+            <button onClick={() => restoreFinishedTodo(todo.id)}>
+              {" "}
+              Restore{" "}
+            </button>
+            <button onClick={() => deleteTodo(todo.id)}> Delete </button>
+          </li>
+        ))}
+      </ul>
+      {deletedTodos.length > 0 && <h2> Deleted To-Dos:</h2>}
+      <ul>
+        {deletedTodos.map((todo) => (
+          <li key={todo.id}>
+            <h3> {todo.title} </h3>
+            <p>{todo.description}</p>
+            <p>Due Date: {todo.dueDate} </p>
+            <p>Priority:{todo.priority}</p>
+            <button onClick={() => restoreTodo(todo.id)}> Restore </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
 export default App;
