@@ -175,9 +175,11 @@ function App() {
     }
   };
 
-  const filteredTodos = [...todos, ...deletedTodos].filter((todo) =>
-    todo.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTodos = () => {
+    return filteredAndSortedTodos().filter((todo) =>
+      todo.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
 
   const sortedTodos = () => {
     return todos.slice().sort((a, b) => {
@@ -275,9 +277,13 @@ function App() {
 
       {searchQuery && (
         <ul>
-          {filteredTodos.map((todo, index) => (
+          {filteredTodos().map((todo, index) => (
             <li key={index}>
-              {todo.title} - {todo.description}{" "}
+              <h3>{todo.title}</h3>
+              <p>{todo.description}</p>
+              <p>Due Date: {todo.dueDate}</p>
+              <p>Priority: {todo.priority}</p>
+              <p>Status: {todo.status}</p>
               {todos.includes(todo) ? "(Active)" : "(Deleted)"}
             </li>
           ))}
