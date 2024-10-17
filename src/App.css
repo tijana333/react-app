@@ -11,12 +11,17 @@ body {
 }
 
 h1,
-h2,
-h3 {
+h2 {
   color: white;
   margin-left: 20px;
+  margin-bottom: 10px;
 }
 
+h3 {
+  color: white;
+  margin-right: 20px;
+  margin-top: 8px;
+}
 .App {
   max-width: 1100px;
   margin: 0 auto;
@@ -44,6 +49,7 @@ form {
   margin-bottom: 20px;
   width: 100%;
   box-sizing: border-box;
+  gap: 10px;
 }
 
 .form-group {
@@ -65,7 +71,6 @@ select {
   border: none;
   color: #800080;
   background-color: white;
-  margin-right: 10px;
 }
 
 button {
@@ -95,8 +100,10 @@ select:focus {
 }
 
 .filter-container {
+  display: flex;
   margin-bottom: 15px;
   margin-left: 20px;
+  gap: 10px;
 }
 
 .select-group {
