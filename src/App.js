@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./App.css";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -38,7 +39,6 @@ function App() {
       return false;
     }
 
-    // Provera da ne mogu da se unesu samo brojevi
     const titleIsValid = isNaN(newTodo.title);
     const descriptionIsValid = isNaN(newTodo.description);
 
@@ -218,102 +218,14 @@ function App() {
   return (
     <div className="App">
       <h1>To-Do List</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="title"
-          value={newTodo.title}
-          onChange={handleTitleChange}
-          placeholder="Title"
-          required
-        />
-        <input
-          type="text"
-          name="description"
-          value={newTodo.description}
-          onChange={handleChange}
-          placeholder="Description"
-          required
-        />
-        <select
-          name="priority"
-          value={newTodo.priority}
-          onChange={handleChange}
-        >
-          <option value="low">Low Priority</option>
-          <option value="medium">Medium Priority</option>
-          <option value="high">High Priority</option>
-        </select>
-        <input
-          type="date"
-          name="dueDate"
-          value={newTodo.dueDate}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">Add To-Do</button>
-        {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-      </form>
-
-      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-        <option value="creationDate">Sort by Creation Date</option>
-        <option value="priority">Sort by Priority</option>
-        <option value="status">Sort by Status</option>
-      </select>
-
-      <select value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-        <option value="all">Show all</option>
-        <option value="active">Show Active</option>
-        <option value="finished">Show Finished</option>
-        <option value="trashed">Show Trashed</option>
-      </select>
-
-      <input
-        type="text"
-        placeholder="Search To-Dos"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-
-      {searchQuery && (
-        <ul>
-          {filteredTodos().map((todo, index) => (
-            <li key={index}>
-              <h3>{todo.title}</h3>
-              <p>{todo.description}</p>
-              <p>Due Date: {todo.dueDate}</p>
-              <p>Priority: {todo.priority}</p>
-              <p>Status: {todo.status}</p>
-              {todos.includes(todo) ? "(Active)" : "(Deleted)"}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h2>Your Active To-Do List:</h2>
-      <ul>
-        {filteredAndSortedTodos().map((todo) => (
-          <li key={todo.id}>
-            <h3>{todo.title}</h3>
-            <p>{todo.description}</p>
-            <p>Due Date: {todo.dueDate}</p>
-            <p>Priority: {todo.priority}</p>
-            <button onClick={() => editTodo(todo)}>Edit</button>
-            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-            <button onClick={() => finishTodo(todo.id)}>Finish</button>
-          </li>
-        ))}
-      </ul>
-
-      {editMode && (
-        <form onSubmit={handleUpdateSubmit}>
-          <h3>Edit To-Do</h3>
+      <div className="form-container">
+        <form onSubmit={handleSubmit}>
           <input
             type="text"
             name="title"
             value={newTodo.title}
             onChange={handleTitleChange}
-            placeholder="Edit Title"
+            placeholder="Title"
             required
           />
           <input
@@ -321,7 +233,7 @@ function App() {
             name="description"
             value={newTodo.description}
             onChange={handleChange}
-            placeholder="Edit Description"
+            placeholder="Description"
             required
           />
           <select
@@ -340,40 +252,132 @@ function App() {
             onChange={handleChange}
             required
           />
-          <button type="submit">Update To-Do</button>
+          <button type="submit">Add To-Do</button>
           {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         </form>
+      </div>
+
+      <div className="filter-container">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="creationDate">Sort by Creation Date</option>
+          <option value="priority">Sort by Priority</option>
+          <option value="status">Sort by Status</option>
+        </select>
+
+        <select value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
+          <option value="all">Show all</option>
+          <option value="active">Show Active</option>
+          <option value="finished">Show Finished</option>
+          <option value="trashed">Show Trashed</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Search To-Dos"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      {searchQuery && (
+        <ul>
+          {filteredTodos().map((todo, index) => (
+            <li key={index}>
+              <h3>{todo.title}</h3>
+              <p>{todo.description}</p>
+              <p>Due Date: {todo.dueDate}</p>
+              <p>Priority: {todo.priority}</p>
+              <p>Status: {todo.status}</p>
+              {todos.includes(todo) ? "(Active)" : "(Deleted)"}
+            </li>
+          ))}
+        </ul>
       )}
+      <div className="todos-container">
+        <h2>Your Active To-Do List:</h2>
+        <ul>
+          {filteredAndSortedTodos().map((todo) => (
+            <li key={todo.id}>
+              <h3>{todo.title}</h3>
+              <p>{todo.description}</p>
+              <p>Due Date: {todo.dueDate}</p>
+              <p>Priority: {todo.priority}</p>
+              <button onClick={() => editTodo(todo)}>Edit</button>
+              <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+              <button onClick={() => finishTodo(todo.id)}>Finish</button>
+            </li>
+          ))}
+        </ul>
 
-      {finishedTodos.length > 0 && <h2> Finished To-Dos:</h2>}
-      <ul>
-        {finishedTodos.map((todo) => (
-          <li key={todo.id}>
-            <h3> {todo.title}</h3>
-            <p>{todo.description}</p>
-            <p>Due Date: {todo.dueDate} </p>
-            <p>Priority: {todo.priority}</p>
+        {editMode && (
+          <form onSubmit={handleUpdateSubmit}>
+            <h3>Edit To-Do</h3>
+            <input
+              type="text"
+              name="title"
+              value={newTodo.title}
+              onChange={handleTitleChange}
+              placeholder="Edit Title"
+              required
+            />
+            <input
+              type="text"
+              name="description"
+              value={newTodo.description}
+              onChange={handleChange}
+              placeholder="Edit Description"
+              required
+            />
+            <select
+              name="priority"
+              value={newTodo.priority}
+              onChange={handleChange}
+            >
+              <option value="low">Low Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+            <input
+              type="date"
+              name="dueDate"
+              value={newTodo.dueDate}
+              onChange={handleChange}
+              required
+            />
+            <button type="submit">Update To-Do</button>
+            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+          </form>
+        )}
 
-            <button onClick={() => restoreFinishedTodo(todo.id)}>
-              {" "}
-              Restore{" "}
-            </button>
-            <button onClick={() => deleteTodo(todo.id)}> Delete </button>
-          </li>
-        ))}
-      </ul>
-      {deletedTodos.length > 0 && <h2> Deleted To-Dos:</h2>}
-      <ul>
-        {deletedTodos.map((todo) => (
-          <li key={todo.id}>
-            <h3> {todo.title} </h3>
-            <p>{todo.description}</p>
-            <p>Due Date: {todo.dueDate} </p>
-            <p>Priority:{todo.priority}</p>
-            <button onClick={() => restoreTodo(todo.id)}> Restore </button>
-          </li>
-        ))}
-      </ul>
+        {finishedTodos.length > 0 && <h2> Finished To-Dos:</h2>}
+        <ul>
+          {finishedTodos.map((todo) => (
+            <li key={todo.id}>
+              <h3> {todo.title}</h3>
+              <p>{todo.description}</p>
+              <p>Due Date: {todo.dueDate} </p>
+              <p>Priority: {todo.priority}</p>
+
+              <button onClick={() => restoreFinishedTodo(todo.id)}>
+                {" "}
+                Restore{" "}
+              </button>
+              <button onClick={() => deleteTodo(todo.id)}> Delete </button>
+            </li>
+          ))}
+        </ul>
+        {deletedTodos.length > 0 && <h2> Deleted To-Dos:</h2>}
+        <ul>
+          {deletedTodos.map((todo) => (
+            <li key={todo.id}>
+              <h3> {todo.title} </h3>
+              <p>{todo.description}</p>
+              <p>Due Date: {todo.dueDate} </p>
+              <p>Priority:{todo.priority}</p>
+              <button onClick={() => restoreTodo(todo.id)}> Restore </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
