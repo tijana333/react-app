@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import TodoList from "./TodoList"; // Importuj TodoList komponentu
+import TodoForm from "./TodoForm"; // Importuj TodoForm komponentu
 import "./App.css";
 
 function App() {
@@ -10,7 +12,6 @@ function App() {
     title: "",
     description: "",
     priority: "low",
-    createdAt: new Date().toISOString(),
     dueDate: "",
     status: "active",
   });
@@ -24,14 +25,18 @@ function App() {
     const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
     const savedDeletedTodos =
       JSON.parse(localStorage.getItem("deletedTodos")) || [];
+    const savedFinishedTodos =
+      JSON.parse(localStorage.getItem("finishedTodos")) || [];
     setTodos(savedTodos);
     setDeletedTodos(savedDeletedTodos);
+    setFinishedTodos(savedFinishedTodos);
   }, []);
 
   useEffect(() => {
     localStorage.setItem("todos", JSON.stringify(todos));
     localStorage.setItem("deletedTodos", JSON.stringify(deletedTodos));
-  }, [todos, deletedTodos]);
+    localStorage.setItem("finishedTodos", JSON.stringify(finishedTodos));
+  }, [todos, deletedTodos, finishedTodos]);
 
   const validateForm = () => {
     if (!newTodo.title || !newTodo.description || !newTodo.dueDate) {
@@ -62,13 +67,6 @@ function App() {
       ...prevState,
       [name]: value,
     }));
-
-    // Provera unosa naslova u toku kucanja
-    if (value && !isNaN(value)) {
-      setErrorMessage("Title cannot be just numbers.");
-    } else {
-      setErrorMessage("");
-    }
   };
 
   const addTodo = (newTodo) => {
@@ -77,7 +75,6 @@ function App() {
       createdAt: new Date().toISOString(),
       ...newTodo,
     };
-    console.log("Dodajem to-do:", todoToAdd);
     setTodos((prev) => [todoToAdd, ...prev]);
   };
 
@@ -127,13 +124,6 @@ function App() {
         { ...todoToDelete, status: "trashed" },
       ]);
       setTodos((prev) => prev.filter((todo) => todo.id !== id));
-    } else {
-      const todoToDeleteFromFinished = finishedTodos.find(
-        (todo) => todo.id === id
-      );
-      if (todoToDeleteFromFinished) {
-        setFinishedTodos((prev) => prev.filter((todo) => todo.id !== id));
-      }
     }
   };
 
@@ -144,18 +134,6 @@ function App() {
       { ...todoToFinish, status: "finished" },
     ]);
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
-  };
-
-  const restoreFinishedTodo = (id) => {
-    const todoToRestore = finishedTodos.find((todo) => todo.id === id);
-    setTodos((prev) => [...prev, todoToRestore]);
-    setFinishedTodos((prev) => prev.filter((todo) => todo.id !== id));
-  };
-
-  const restoreTodo = (id) => {
-    const todoToRestore = deletedTodos.find((todo) => todo.id === id);
-    setTodos((prev) => [...prev, todoToRestore]);
-    setDeletedTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
   const handleChange = (e) => {
@@ -170,92 +148,56 @@ function App() {
     e.preventDefault();
     if (validateForm()) {
       addTodo(newTodo);
-
       setNewTodo({ title: "", description: "", priority: "low", dueDate: "" });
     }
   };
 
-  const filteredTodos = () => {
-    return filteredAndSortedTodos().filter((todo) =>
-      todo.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-
-  const sortedTodos = () => {
-    return todos.slice().sort((a, b) => {
-      if (sortBy === "creationDate") {
-        return new Date(a.createdAt) - new Date(b.createdAt);
-      }
-      if (sortBy === "priority") {
-        const priorityOrder = { high: 1, medium: 2, low: 3, normal: 4 };
-        return priorityOrder[a.priority] - priorityOrder[b.priority];
-      }
-      if (sortBy === "status") {
-        const statusOrder = { active: 1, finished: 2, trashed: 3 };
-        return statusOrder[a.status] - statusOrder[b.status];
-      }
-      return 0;
-    });
-  };
-
   const filteredAndSortedTodos = () => {
-    return sortedTodos().filter((todo) => {
-      if (filterBy === "active") return todo.status === "active";
-      if (filterBy === "finished") return todo.status === "finished";
-      if (filterBy === "trashed") return todo.status === "trashed";
-      return true;
-    });
-  };
-
-  const updateStatus = (id, newStatus) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, status: newStatus } : todo
-      )
-    );
+    return todos
+      .filter((todo) => {
+        if (filterBy === "active") return todo.status === "active";
+        if (filterBy === "finished") return todo.status === "finished";
+        if (filterBy === "trashed") return todo.status === "trashed";
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "creationDate") {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        }
+        if (sortBy === "priority") {
+          const priorityOrder = { high: 1, medium: 2, low: 3 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
+        if (sortBy === "status") {
+          const statusOrder = { active: 1, finished: 2, trashed: 3 };
+          return statusOrder[a.status] - statusOrder[b.status];
+        }
+        return 0;
+      });
   };
 
   return (
     <div className="App">
       <h1>To-Do List</h1>
-      <div className="form-container">
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="title"
-            value={newTodo.title}
-            onChange={handleTitleChange}
-            placeholder="Title"
-            required
-          />
-          <input
-            type="text"
-            name="description"
-            value={newTodo.description}
-            onChange={handleChange}
-            placeholder="Description"
-            required
-          />
-          <select
-            name="priority"
-            value={newTodo.priority}
-            onChange={handleChange}
-          >
-            <option value="low">Low Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
-          </select>
-          <input
-            type="date"
-            name="dueDate"
-            value={newTodo.dueDate}
-            onChange={handleChange}
-            required
-          />
-          <button type="submit">Add To-Do</button>
-          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-        </form>
-      </div>
+
+      {/* Forma za uređivanje */}
+      {editMode ? (
+        <TodoForm
+          newTodo={newTodo}
+          handleChange={handleChange}
+          handleTitleChange={handleTitleChange}
+          handleSubmit={handleUpdateSubmit}
+          errorMessage={errorMessage}
+        />
+      ) : (
+        <TodoForm
+          newTodo={newTodo}
+          handleChange={handleChange}
+          handleTitleChange={handleTitleChange}
+          handleSubmit={handleSubmit}
+          errorMessage={errorMessage}
+        />
+      )}
 
       <div className="filter-container">
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -278,107 +220,15 @@ function App() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      {searchQuery && (
-        <ul>
-          {filteredTodos().map((todo, index) => (
-            <li key={index}>
-              <h3>{todo.title}</h3>
-              <p>{todo.description}</p>
-              <p>Due Date: {todo.dueDate}</p>
-              <p>Priority: {todo.priority}</p>
-              <p>Status: {todo.status}</p>
-              {todos.includes(todo) ? "(Active)" : "(Deleted)"}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="todos-container">
-        <h2>Your Active To-Do List:</h2>
-        <ul>
-          {filteredAndSortedTodos().map((todo) => (
-            <li key={todo.id}>
-              <h3>{todo.title}</h3>
-              <p>{todo.description}</p>
-              <p>Due Date: {todo.dueDate}</p>
-              <p>Priority: {todo.priority}</p>
-              <button onClick={() => editTodo(todo)}>Edit</button>
-              <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-              <button onClick={() => finishTodo(todo.id)}>Finish</button>
-            </li>
-          ))}
-        </ul>
 
-        {editMode && (
-          <form onSubmit={handleUpdateSubmit}>
-            <h3>Edit To-Do</h3>
-            <input
-              type="text"
-              name="title"
-              value={newTodo.title}
-              onChange={handleTitleChange}
-              placeholder="Edit Title"
-              required
-            />
-            <input
-              type="text"
-              name="description"
-              value={newTodo.description}
-              onChange={handleChange}
-              placeholder="Edit Description"
-              required
-            />
-            <select
-              name="priority"
-              value={newTodo.priority}
-              onChange={handleChange}
-            >
-              <option value="low">Low Priority</option>
-              <option value="medium">Medium Priority</option>
-              <option value="high">High Priority</option>
-            </select>
-            <input
-              type="date"
-              name="dueDate"
-              value={newTodo.dueDate}
-              onChange={handleChange}
-              required
-            />
-            <button type="submit">Update To-Do</button>
-            {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-          </form>
-        )}
-
-        {finishedTodos.length > 0 && <h2> Finished To-Dos:</h2>}
-        <ul>
-          {finishedTodos.map((todo) => (
-            <li key={todo.id}>
-              <h3> {todo.title}</h3>
-              <p>{todo.description}</p>
-              <p>Due Date: {todo.dueDate} </p>
-              <p>Priority: {todo.priority}</p>
-
-              <button onClick={() => restoreFinishedTodo(todo.id)}>
-                {" "}
-                Restore{" "}
-              </button>
-              <button onClick={() => deleteTodo(todo.id)}> Delete </button>
-            </li>
-          ))}
-        </ul>
-        {deletedTodos.length > 0 && <h2> Deleted To-Dos:</h2>}
-        <ul>
-          {deletedTodos.map((todo) => (
-            <li key={todo.id}>
-              <h3> {todo.title} </h3>
-              <p>{todo.description}</p>
-              <p>Due Date: {todo.dueDate} </p>
-              <p>Priority:{todo.priority}</p>
-              <button onClick={() => restoreTodo(todo.id)}> Restore </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <TodoList
+        todos={filteredAndSortedTodos()}
+        onDelete={deleteTodo}
+        onFinish={finishTodo}
+        onEdit={editTodo}
+      />
     </div>
   );
 }
+
 export default App;
