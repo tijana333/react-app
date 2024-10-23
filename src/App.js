@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import TodoList from "./TodoList"; // Importuj TodoList komponentu
-import TodoForm from "./TodoForm"; // Importuj TodoForm komponentu
 import "./App.css";
+import TodoForm from "./TodoForm";
+import TodoList from "./TodoList";
+import FinishedTodoList from "./FinishedTodoList";
+import DeletedTodoList from "./DeletedTodoList";
+import SearchBar from "./SearchBar";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -136,6 +139,20 @@ function App() {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
+  const restoreFinishedTodo = (id) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, status: "active" } : todo
+    );
+    setTodos(updatedTodos);
+  };
+
+  const restoreTodo = (id) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, status: "active" } : todo
+    );
+    setTodos(updatedTodos);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewTodo((prevState) => ({
@@ -179,54 +196,33 @@ function App() {
   return (
     <div className="App">
       <h1>To-Do List</h1>
-
-      {/* Forma za uređivanje */}
-      {editMode ? (
-        <TodoForm
-          newTodo={newTodo}
-          handleChange={handleChange}
-          handleTitleChange={handleTitleChange}
-          handleSubmit={handleUpdateSubmit}
-          errorMessage={errorMessage}
-        />
-      ) : (
-        <TodoForm
-          newTodo={newTodo}
-          handleChange={handleChange}
-          handleTitleChange={handleTitleChange}
-          handleSubmit={handleSubmit}
-          errorMessage={errorMessage}
-        />
-      )}
-
-      <div className="filter-container">
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="creationDate">Sort by Creation Date</option>
-          <option value="priority">Sort by Priority</option>
-          <option value="status">Sort by Status</option>
-        </select>
-
-        <select value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-          <option value="all">Show all</option>
-          <option value="active">Show Active</option>
-          <option value="finished">Show Finished</option>
-          <option value="trashed">Show Trashed</option>
-        </select>
-
-        <input
-          type="text"
-          placeholder="Search To-Dos"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
+      <TodoForm
+        newTodo={newTodo}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        errorMessage={errorMessage}
+        editMode={editMode}
+      />
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        filterBy={filterBy}
+        setFilterBy={setFilterBy}
+      />
       <TodoList
         todos={filteredAndSortedTodos()}
-        onDelete={deleteTodo}
-        onFinish={finishTodo}
-        onEdit={editTodo}
+        editTodo={editTodo}
+        deleteTodo={deleteTodo}
+        finishTodo={finishTodo}
       />
+      <FinishedTodoList
+        finishedTodos={finishedTodos}
+        restoreFinishedTodo={restoreFinishedTodo}
+        deleteTodo={deleteTodo}
+      />
+      <DeletedTodoList deletedTodos={deletedTodos} restoreTodo={restoreTodo} />
     </div>
   );
 }

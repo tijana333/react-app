@@ -3,9 +3,10 @@ import React from "react";
 function TodoForm({
   newTodo,
   handleChange,
-  handleTitleChange,
   handleSubmit,
   errorMessage,
+  editMode,
+  handleTitleChange,
 }) {
   return (
     <form onSubmit={handleSubmit}>
@@ -37,7 +38,7 @@ function TodoForm({
         onChange={handleChange}
         required
       />
-      <button type="submit">Add To-Do</button>
+      <button type="submit">{editMode ? "Update To-Do" : "Add To-Do"}</button>
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </form>
   );
